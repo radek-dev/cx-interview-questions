@@ -3,6 +3,8 @@ Shopping Basket Assignment for ECS
 by Radek
 date: 09-Feb-2021
 """
+from decimal import Decimal as Dec
+from decimal import ROUND_HALF_UP as RHU
 
 
 class ShoppingBasket:
@@ -31,8 +33,7 @@ class ShoppingBasket:
          It's also possible that there are items in the catalogue with no offers,
          or multiple offers.)
         offers (collection of special offers, prices can't be hard coded, It's
-        possible that there are offers on products
-        which are no longer in the catalogue)
+        possible that there are offers on products which are no longer in the catalogue)
 
     methods
         get_basket_price:
@@ -49,7 +50,45 @@ class ShoppingBasket:
 
 
     """
+    def __init__(self, catalogue: dict, offers: dict, basket: dict = {}):
+        # ToDo: add error handling for inputs
+        self.basket = basket
+        self.catalogue = catalogue if catalogue else {}
+        self.offers = offers if offers else {}
 
-    def __init__(self):
-        print('hello')
-        pass
+    def add_basket(self, basket: dict):
+        self.basket = basket if basket else {}
+
+    @staticmethod
+    def round(number: float, places: int = 2) -> float:
+        number = str(number)
+        place = ['1.']
+        place.extend(['0'] * places)
+        return float(Dec(number).quantize(Dec(''.join(place)), rounding=RHU))
+
+    def get_basket_price(self) -> tuple:
+        sub_total, discount, total = 0, 0, 0
+
+        for item in self.basket.keys():
+            # item_total = quantity * price
+            item_total = self.round(self.basket[item] * self.catalogue[item])
+            sub_total = self.round(sub_total + item_total)
+            if item in self.offers.keys():
+                if 'deal' in self.offers[item].keys() and\
+                        self.basket[item] >= int(self.offers[item]['deal'][0]):
+                    item_deal_quantity = self.basket[item] // int(
+                        self.offers[item]['deal'][0])
+                    free_items = (int(self.offers[item]['deal'][0]) - int(
+                        self.offers[item]['deal'][-1]))
+                    item_discount = self.round(
+                        (item_deal_quantity * free_items * self.catalogue[item]))
+                    discount = self.round(discount + item_discount)
+                elif 'discount' in self.offers[item].keys():
+                    item_discount = self.round(
+                        item_total * (self.offers[item]['discount']))
+                    discount = self.round(discount + item_discount)
+                del item_discount
+
+        total = self.round(sub_total - discount)
+        return sub_total, discount, total
+
