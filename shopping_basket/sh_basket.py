@@ -55,19 +55,19 @@ class ShoppingBasket:
             self.__check_catalogue(catalogue)
         else:
             raise ValueError('Catalogue can not be empty')
-        self.catalogue = catalogue
+        self.__catalogue = catalogue
 
         if basket:
             self.__check_basket(basket)
-        self.basket = basket if basket else {}
+        self.__basket = basket if basket else {}
 
         if offers:
             self.__check_offers(offers)
-        self.offers = offers if offers else {}
+        self.__offers = offers if offers else {}
 
     def set_basket(self, basket: dict):
         self.__check_basket(basket)
-        self.basket = basket if basket else {}
+        self.__basket = basket if basket else {}
 
     @staticmethod
     def __check_catalogue(catalogue: dict):
@@ -81,16 +81,17 @@ class ShoppingBasket:
             raise TypeError('Identifiers for the basket must be strings')
         if any([not isinstance(v, (int, float)) for v in basket.values()]):
             raise TypeError('Values for the basket must be int or float')
-        if any([k not in self.catalogue.keys() for k in basket.keys()]):
+        if any([k not in self.__catalogue.keys() for k in basket.keys()]):
             raise KeyError('The basket items must be in the catalogue')
 
     @staticmethod
     def __check_offers(offers: dict):
         if any([not isinstance(s, str) for s in offers.keys()]):
             raise TypeError('Identifiers for the offers must be strings')
-        if any([not isinstance(v, str) for v in offers.keys()]):
-            raise TypeError('Offers must be stored in dictionaries')
-        # ToDo: add check for *deal* and *discount* keys, they must be present
+        for item in offers.keys():
+            if any([s not in ['deal', 'discount'] for s in offers[item]]):
+                raise KeyError('Offers must include deal or discount keys only')
+        # ToDo: there missing checks for correct offer inputs here
 
     @staticmethod
     def round(number: float, places: int = 2) -> float:
@@ -102,26 +103,26 @@ class ShoppingBasket:
     def get_basket_price(self) -> tuple:
         sub_total, discount, total = 0, 0, 0
 
-        for item in self.basket.keys():
+        for item in self.__basket.keys():
             # item_total = quantity * price
-            basket_quantity = self.basket[item]
-            item_total = self.round(basket_quantity * self.catalogue[item])
+            basket_quantity = self.__basket[item]
+            item_total = self.round(basket_quantity * self.__catalogue[item])
             sub_total = self.round(sub_total + item_total)
-            if item in self.offers.keys():
-                if 'deal' in self.offers[item].keys() and \
-                        basket_quantity >= int(self.offers[item]['deal'][0]):
-                    deal_quantity = int(self.offers[item]['deal'][0])
+            if item in self.__offers.keys():
+                item_discount = 0
+                if 'deal' in self.__offers[item].keys() and \
+                        basket_quantity >= int(self.__offers[item]['deal'][0]):
+                    deal_quantity = int(self.__offers[item]['deal'][0])
                     item_deal_quantity = basket_quantity // deal_quantity
-                    free_items = deal_quantity - int(self.offers[item]['deal'][-1])
+                    free_items = deal_quantity - int(self.__offers[item]['deal'][-1])
                     item_discount = self.round(
-                        (item_deal_quantity * free_items * self.catalogue[item]))
-                elif 'discount' in self.offers[item].keys():
+                        (item_deal_quantity * free_items * self.__catalogue[item]))
+                elif 'discount' in self.__offers[item].keys():
                     item_discount = self.round(
-                        item_total * (self.offers[item]['discount']))
+                        item_total * (self.__offers[item]['discount']))
 
                 discount = self.round(discount + item_discount)
                 del item_discount
 
         total = self.round(sub_total - discount)
         return sub_total, discount, total
-
