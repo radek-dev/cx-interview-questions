@@ -16,7 +16,8 @@ def test_basket():
     offers = {'baked_beans': {'deal': '3-for-2', 'discount': 0.1},
               'sardines': {'discount': 0.25}}
     basket = {'baked_beans': 4, 'biscuits': 1}
-    sh_basket = ShoppingBasket(basket=basket, catalogue=catalogue, offers=offers)
+    sh_basket = ShoppingBasket(basket=basket, catalogue=catalogue,
+                               offers=offers)
     yield sh_basket
 
 
@@ -57,7 +58,7 @@ class TestShoppingBasket:
         with pytest.raises(KeyError):
             ShoppingBasket({'test_good': 2}, {'test_good': 'wrong_input'})
 
-    def test_example1(self, test_basket):
+    def test_basket1(self, test_basket):
         basket = {'baked_beans': 4, 'biscuits': 1}
         test_basket.set_basket(basket)
         sub_total, discount, total = test_basket.get_basket_price()
@@ -65,7 +66,7 @@ class TestShoppingBasket:
         assert discount == 0.99
         assert total == 4.17
 
-    def test_example2(self, test_basket):
+    def test_basket2(self, test_basket):
         basket = {'baked_beans': 2, 'biscuits': 1, 'sardines': 2}
         test_basket.set_basket(basket)
         sub_total, discount, total = test_basket.get_basket_price()
@@ -73,7 +74,7 @@ class TestShoppingBasket:
         assert discount == 1.15
         assert total == 5.81
 
-    def test_example3(self, test_basket):
+    def test_basket3(self, test_basket):
         basket = {'baked_beans': 7, 'biscuits': 1, 'sardines': 2}
         test_basket.set_basket(basket)
         sub_total, discount, total = test_basket.get_basket_price()
@@ -81,7 +82,7 @@ class TestShoppingBasket:
         assert discount == 2.93
         assert total == 8.98
 
-    def test_example4(self):
+    def test_basket4(self):
         catalogue = {
             'baked_beans': 0.99,
             'biscuits': 1.20,
@@ -94,8 +95,32 @@ class TestShoppingBasket:
                   'sardines': {'discount': 0.25},
                   'biscuits': {'deal': '5-for-1', 'discount': 0.15}}
         basket = {'baked_beans': 7, 'sardines': 1, 'biscuits': 7}
-        sh_basket = ShoppingBasket(basket=basket, catalogue=catalogue, offers=offers)
+        sh_basket = ShoppingBasket(basket=basket, catalogue=catalogue,
+                                   offers=offers)
         sub_total, discount, total = sh_basket.get_basket_price()
         assert sub_total == 17.22
         assert discount == 8.24
         assert total == 8.98
+
+    def test_basket5(self):
+        catalogue = {
+            'baked_beans': 0.99,
+            'biscuits': 1.20,
+            'sardines': 1.89,
+            'shampoo_small': 2.00,
+            'shampoo_medium': 2.50,
+            'shampoo_large': 3.50,
+        }
+        basket = {'baked_beans': 7, 'sardines': 1, 'biscuits': 7}
+        sh_basket = ShoppingBasket(catalogue, {}, basket)
+        sub_total, discount, total = sh_basket.get_basket_price()
+        assert sub_total == 17.22
+        assert discount == 0
+        assert total == 17.22
+
+    def test_basket6(self, test_basket):
+        test_basket.set_basket({})
+        sub_total, discount, total = test_basket.get_basket_price()
+        assert sub_total == 0
+        assert discount == 0
+        assert total == 0
