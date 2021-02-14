@@ -34,6 +34,10 @@ class TestShoppingBasket:
             ShoppingBasket({5: 5}, {})
         with pytest.raises(TypeError):
             ShoppingBasket({'test_good': 'wrong_input'}, {})
+        with pytest.raises(ValueError):
+            ShoppingBasket({'test_good': -1}, {})
+        with pytest.raises(ValueError):
+            ShoppingBasket({'test_good': 0}, {})
 
         # basket tests
         with pytest.raises(TypeError):
@@ -42,6 +46,10 @@ class TestShoppingBasket:
             ShoppingBasket({'test_good': 1}, {}, {'test_good': 'wrong_input'})
         with pytest.raises(KeyError):
             ShoppingBasket({'test_good': 2}, {}, {'test_good2': 2})
+        with pytest.raises(ValueError):
+            ShoppingBasket({'test_good': 1}, {}, {'test_good': 0})
+        with pytest.raises(ValueError):
+            ShoppingBasket({'test_good': 1}, {}, {'test_good': -1})
 
         # offer tests
         with pytest.raises(TypeError):
@@ -71,4 +79,23 @@ class TestShoppingBasket:
         sub_total, discount, total = test_basket.get_basket_price()
         assert sub_total == 11.91
         assert discount == 2.93
+        assert total == 8.98
+
+    def test_example4(self):
+        catalogue = {
+            'baked_beans': 0.99,
+            'biscuits': 1.20,
+            'sardines': 1.89,
+            'shampoo_small': 2.00,
+            'shampoo_medium': 2.50,
+            'shampoo_large': 3.50,
+        }
+        offers = {'baked_beans': {'deal': '2-for-1', 'discount': 0.1},
+                  'sardines': {'discount': 0.25},
+                  'biscuits': {'deal': '5-for-1', 'discount': 0.15}}
+        basket = {'baked_beans': 7, 'sardines': 1, 'biscuits': 7}
+        sh_basket = ShoppingBasket(basket=basket, catalogue=catalogue, offers=offers)
+        sub_total, discount, total = sh_basket.get_basket_price()
+        assert sub_total == 17.22
+        assert discount == 8.24
         assert total == 8.98
